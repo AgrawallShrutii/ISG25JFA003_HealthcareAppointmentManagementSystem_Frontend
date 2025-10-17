@@ -1,42 +1,31 @@
-// Doctor Registration Request - Based on the provided DTO structure
-export interface AuthDoctorRequest {
-  username: string;
-  password: string;
-  roleName?: 'DOCTOR'; // Optional in frontend, but useful for clarity/if required by backend
+export interface AuthDoctorRequest extends AuthDoctorLogin {
   doctorName: string;
   qualification: string;
   specialization: string;
   clinicAddress: string;
-  yearOfExperience: number;
+  yearOfExperience: number; // Maps from Java Integer
   contactNumber: string;
   email: string;
 }
 
-// Doctor Login Request (Standard)
+export interface AuthDoctorResponse {
+  token: string;
+  type: 'Bearer';
+  patient: Doctor;
+}
+
 export interface AuthDoctorLogin {
   username: string;
   password: string;
 }
 
-// Doctor Login/Registration Response
-export interface AuthDoctorResponse {
-  token: string;
-  id: number;
-  username: string;
-  role: 'DOCTOR';
-  email: string;
-  doctorName: string;
-  specialization: string;
-  // ... other doctor-specific fields returned by the backend
-}
-export interface DoctorResponseDTO {
-  // Optional in frontend, but useful for clarity/if required by backend
-  doctorId:number;
+export interface Doctor {
+  doctorId: number; // Maps from Java Long
   doctorName: string;
   qualification: string;
   specialization: string;
   clinicAddress: string;
-  yearOfExperience: number;
+  yearOfExperience: number; // Maps from Java Integer
   contactNumber: string;
   email: string;
 }

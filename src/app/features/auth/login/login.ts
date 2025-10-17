@@ -7,8 +7,9 @@ import { PatientAuthService } from '../../../core/services/patient-auth.service'
 import { DoctorAuthService } from '../../../core/services/doctor-auth.service'; // NEW IMPORT
 import { AdminAuthService } from '../../../core/services/admin-auth.service'; // NEW IMPORT
 import { AuthPatientLogin } from '../../../models/auth-patient-interface';
-import { AuthDoctorLogin } from '../../../models/auth-doctor-interface'; // NEW IMPORT
-import { AuthAdminLogin } from '../../../models/auth-admin-interface'; // NEW IMPORT
+import { Observable } from 'rxjs';
+import { DoctorAuthService } from '../../../core/services/doctor-auth.service';
+import { AdminAuthService } from '../../../core/services/admin-auth.service';
 
 type LoginMode = 'patient' | 'doctor' | 'admin';
 
@@ -21,11 +22,9 @@ type LoginMode = 'patient' | 'doctor' | 'admin';
 })
 export class Login {
   private fb = inject(FormBuilder);
-  // Inject all three services
   private patientAuthService = inject(PatientAuthService);
   private doctorAuthService = inject(DoctorAuthService);
-  private adminAuthService = inject(AdminAuthService);
-  
+  private adminAuthService = inject(AdminAuthService); // Replace with actual AdminAuthService when available
   private router = inject(Router);
 
   loginForm!: FormGroup;
@@ -62,35 +61,24 @@ export class Login {
       let loginObservable: Observable<any>;
       let redirectPath: string;
 
-      // Determine which service to use based on the selected login mode
-      switch (this.loginMode) {
-        case 'patient':
-          loginObservable = this.patientAuthService.login(loginRequest as AuthPatientLogin);
-          redirectPath = '/patient/dashboard';
-          break;
-        case 'doctor':
-          loginObservable = this.doctorAuthService.login(loginRequest as AuthDoctorLogin);
-          redirectPath = '/doctor/dashboard';
-          break;
-        case 'admin':
-          loginObservable = this.adminAuthService.login(loginRequest as AuthAdminLogin);
-          redirectPath = '/admin/dashboard';
-          break;
-        default:
-          this.isLoading = false;
-          this.errorMessage = 'Invalid login mode selected.';
-          return;
+      if (this.loginMode === 'patient') {
+        loginObservable = this.patientAuthService.login(loginRequest);
+        redirectPath = '/patient/dashboard';
+      } else if (this.loginMode === 'doctor') {
+        loginObservable = this.doctorAuthService.login(loginRequest);
+        redirectPath = '/doctor/dashboard';
+      } else if (this.loginMode === 'admin') {
+        loginObservable = this.adminAuthService.login(loginRequest);
+        redirectPath = '/admin/dashboard';
       }
       
       loginObservable.subscribe({
         next: () => {
           this.isLoading = false;
-          // Navigate to the role-specific dashboard
           this.router.navigate([redirectPath]);
         },
         error: (error) => {
           this.isLoading = false;
-          // Display a user-friendly error message
           this.errorMessage =
             error?.error?.message ||
             `Login failed for ${this.loginMode}. Invalid credentials or network error.`;
@@ -102,9 +90,12 @@ export class Login {
     }
   }
 
+  isPatientMode: boolean = true;
+  loginMode: LoginMode = 'patient';
+
   toggleLoginMode(mode: LoginMode): void {
     this.loginMode = mode;
     this.errorMessage = '';
-    this.loginForm.reset(); // Reset form state on mode switch
+    this.loginForm.reset();
   }
 }

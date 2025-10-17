@@ -9,6 +9,12 @@ export const environment = {
     // Admin login usually uses the unified endpoint with a role parameter
   },
 
+  admin: {
+    doctorRegister: '/admin/create-user',
+    doctorLogin: '/auth/login',
+    adminLogin: '/auth/login',
+  },
+
   patient: {
     getAvailableDoctors: '/patients/doctors-availability',
     getMedicalRecords: '/patients/me/medical-records',

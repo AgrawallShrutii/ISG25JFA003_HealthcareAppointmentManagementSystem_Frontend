@@ -17,22 +17,20 @@ export class PatientAuthService {
   // Assuming explicit registration endpoint is needed for patient role
   private apiUrlForRegistration = environment.apiUrl + environment.auth.register; 
   private apiUrlForLogin = environment.apiUrl + environment.auth.login;
-  private tokenKey = 'authToken';
+  private tokenKey = 'token';
   private patientKey = 'patientData';
   
   private authStatus = inject(AuthStatusService); // Inject the new service
 
-  register(registerRequest: AuthPatientRequest): Observable<AuthPatientResponse> {
-    const requestWithRole = { ...registerRequest, roleName: 'PATIENT' }; // Explicitly set role
-    
+  register(registerRequest: AuthPatientRequest): Observable<any> {
     return this.http
       .post<AuthPatientResponse>(`${this.apiUrlForRegistration}`, requestWithRole, {
         responseType: 'text' as 'json',
       })
       .pipe(
         tap((response) => {
-          this.setAuthData(response);
-          this.authStatus.updateStatus(true, 'PATIENT'); // Update global state
+          this.setRegisteredPatient(response);
+          // this.isAuthenticatedSubject.next(true);
         })
       );
   }
@@ -66,6 +64,15 @@ export class PatientAuthService {
   getCurrentPatient(): AuthPatientResponse | null {
     const patientData = localStorage.getItem(this.patientKey);
     return patientData ? (JSON.parse(patientData) as AuthPatientResponse) : null;
+  }
+
+  isAuthenticated$(): Observable<boolean> {
+    return this.isAuthenticatedSubject.asObservable();
+  }
+
+  private setRegisteredPatient(data: AuthPatientResponse): void {
+    localStorage.setItem(this.patientKey, JSON.stringify(data));
+    this.isAuthenticatedSubject.next(true);
   }
 
   private setAuthData(response: AuthPatientResponse): void {

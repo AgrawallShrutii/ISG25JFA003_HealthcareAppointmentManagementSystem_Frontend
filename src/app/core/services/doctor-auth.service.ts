@@ -1,47 +1,48 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { environment } from '../../environments/environment';
 import {
   AuthDoctorLogin,
   AuthDoctorRequest,
   AuthDoctorResponse,
 } from '../../models/auth-doctor-interface';
-import { environment } from '../../environments/environment';
-import { AuthStatusService } from './auth-status.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class DoctorAuthService {
   private http = inject(HttpClient);
-  private apiUrlForRegistration = environment.apiUrl + environment.auth.doctorRegister;
-  private apiUrlForLogin = environment.apiUrl + environment.auth.login; // Unified login endpoint
-  private tokenKey = 'authToken';
+
+  // === CONFIGURATION (UPDATED for Doctor) ===
+  private apiUrlForRegistration = environment.apiUrl + environment.admin.doctorRegister;
+  private apiUrlForLogin = environment.apiUrl + environment.admin.doctorLogin;
+
+  // Separate keys to prevent token collision with Patient/Admin tokens
+  private tokenKey = 'authDoctorToken';
   private doctorKey = 'doctorData';
-  
-  private authStatus = inject(AuthStatusService); 
+
+  private isAuthenticatedSubject = new BehaviorSubject<boolean>(this.hasToken());
+
+  // --- PUBLIC METHODS ---
 
   register(registerRequest: AuthDoctorRequest): Observable<AuthDoctorResponse> {
-    const requestWithRole = { ...registerRequest, roleName: 'DOCTOR' }; // Match DTO
-    
     return this.http
-      .post<AuthDoctorResponse>(`${this.apiUrlForRegistration}`, requestWithRole)
+      .post<AuthDoctorResponse>(`${this.apiUrlForRegistration}`, registerRequest, {
+        // Ensure this responseType is correct based on your backend implementation
+        responseType: 'text' as 'json',
+      })
       .pipe(
         tap((response) => {
-          // Assuming successful registration may return a token for immediate login
-          this.setAuthData(response);
-          this.authStatus.updateStatus(true, 'DOCTOR');
+          this.setRegisteredDoctor(response);
         })
       );
   }
 
   login(loginRequest: AuthDoctorLogin): Observable<AuthDoctorResponse> {
-    const requestWithRole = { ...loginRequest, role: 'DOCTOR' };
-
-    return this.http.post<AuthDoctorResponse>(`${this.apiUrlForLogin}`, requestWithRole).pipe(
+    return this.http.post<AuthDoctorResponse>(`${this.apiUrlForLogin}`, loginRequest).pipe(
       tap((response) => {
         this.setAuthData(response);
-        this.authStatus.updateStatus(true, 'DOCTOR');
       })
     );
   }
@@ -49,15 +50,39 @@ export class DoctorAuthService {
   logout(): void {
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.doctorKey);
-    this.authStatus.updateStatus(false);
+    this.isAuthenticatedSubject.next(false);
   }
-  
+
   getToken(): string | null {
     return localStorage.getItem(this.tokenKey);
+  }
+
+  /**
+   * Retrieves the full doctor data object from local storage.
+   */
+  getCurrentDoctor(): AuthDoctorResponse | null {
+    const doctorData = localStorage.getItem(this.doctorKey);
+    return doctorData ? (JSON.parse(doctorData) as AuthDoctorResponse) : null;
+  }
+
+  isAuthenticated$(): Observable<boolean> {
+    return this.isAuthenticatedSubject.asObservable();
+  }
+
+  // --- PRIVATE/HELPER METHODS ---
+
+  private setRegisteredDoctor(data: AuthDoctorResponse): void {
+    localStorage.setItem(this.doctorKey, JSON.stringify(data));
+    this.isAuthenticatedSubject.next(true);
   }
 
   private setAuthData(response: AuthDoctorResponse): void {
     localStorage.setItem(this.tokenKey, response.token);
     localStorage.setItem(this.doctorKey, JSON.stringify(response));
+    this.isAuthenticatedSubject.next(true);
+  }
+
+  private hasToken(): boolean {
+    return !!this.getToken();
   }
 }
