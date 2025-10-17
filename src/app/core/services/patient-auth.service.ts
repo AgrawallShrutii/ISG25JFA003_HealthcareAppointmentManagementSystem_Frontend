@@ -1,27 +1,30 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import {
   AuthPatientLogin,
   AuthPatientRequest,
   AuthPatientResponse,
 } from '../../models/auth-patient-interface';
 import { environment } from '../../environments/environment';
+import { AuthStatusService } from './auth-status.service'; // NEW IMPORT
 
 @Injectable({
   providedIn: 'root',
 })
 export class PatientAuthService {
   private http = inject(HttpClient);
-  private apiUrlForRegistration = environment.apiUrl + environment.auth.register;
+  // Assuming explicit registration endpoint is needed for patient role
+  private apiUrlForRegistration = environment.apiUrl + environment.auth.register; 
   private apiUrlForLogin = environment.apiUrl + environment.auth.login;
   private tokenKey = 'token';
   private patientKey = 'patientData';
-  private isAuthenticatedSubject = new BehaviorSubject<boolean>(this.hasToken());
+  
+  private authStatus = inject(AuthStatusService); // Inject the new service
 
   register(registerRequest: AuthPatientRequest): Observable<any> {
     return this.http
-      .post<AuthPatientResponse>(`${this.apiUrlForRegistration}`, registerRequest, {
+      .post<AuthPatientResponse>(`${this.apiUrlForRegistration}`, requestWithRole, {
         responseType: 'text' as 'json',
       })
       .pipe(
@@ -33,10 +36,12 @@ export class PatientAuthService {
   }
 
   login(loginRequest: AuthPatientLogin): Observable<AuthPatientResponse> {
-    return this.http.post<AuthPatientResponse>(`${this.apiUrlForLogin}`, loginRequest).pipe(
+    const requestWithRole = { ...loginRequest, role: 'PATIENT' }; // Explicitly set role
+    
+    return this.http.post<AuthPatientResponse>(`${this.apiUrlForLogin}`, requestWithRole).pipe(
       tap((response) => {
         this.setAuthData(response);
-        // this.isAuthenticatedSubject.next(true);
+        this.authStatus.updateStatus(true, 'PATIENT'); // Update global state
       })
     );
   }
@@ -44,7 +49,12 @@ export class PatientAuthService {
   logout(): void {
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.patientKey);
-    this.isAuthenticatedSubject.next(false);
+    this.authStatus.updateStatus(false);
+  }
+  
+  // Use the central status service
+  isAuthenticated$(): Observable<boolean> {
+    return this.authStatus.isAuthenticated$(); 
   }
 
   getToken(): string | null {
@@ -68,10 +78,5 @@ export class PatientAuthService {
   private setAuthData(response: AuthPatientResponse): void {
     localStorage.setItem(this.tokenKey, response.token);
     localStorage.setItem(this.patientKey, JSON.stringify(response));
-    this.isAuthenticatedSubject.next(true);
-  }
-
-  private hasToken(): boolean {
-    return !!this.getToken();
   }
 }

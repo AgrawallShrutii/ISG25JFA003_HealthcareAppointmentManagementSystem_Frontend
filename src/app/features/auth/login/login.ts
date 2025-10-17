@@ -2,20 +2,23 @@ import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { Observable } from 'rxjs';
 import { PatientAuthService } from '../../../core/services/patient-auth.service';
+import { DoctorAuthService } from '../../../core/services/doctor-auth.service'; // NEW IMPORT
+import { AdminAuthService } from '../../../core/services/admin-auth.service'; // NEW IMPORT
 import { AuthPatientLogin } from '../../../models/auth-patient-interface';
 import { Observable } from 'rxjs';
 import { DoctorAuthService } from '../../../core/services/doctor-auth.service';
 import { AdminAuthService } from '../../../core/services/admin-auth.service';
 
-type LoginMode = 'patient' | 'doctor' | 'admin'; // Add other modes as needed
+type LoginMode = 'patient' | 'doctor' | 'admin';
 
 @Component({
   selector: 'app-login',
-  standalone: true, // Assuming standalone for modern Angular
+  standalone: true, 
   templateUrl: './login.html',
   styleUrl: './login.css',
-  imports: [ReactiveFormsModule, CommonModule, RouterLink], // Modules required by the template
+  imports: [ReactiveFormsModule, CommonModule, RouterLink], 
 })
 export class Login {
   private fb = inject(FormBuilder);
@@ -27,17 +30,16 @@ export class Login {
   loginForm!: FormGroup;
   errorMessage: string = '';
   isLoading: boolean = false;
-  showPassword: boolean = false; // State for password visibility
+  showPassword: boolean = false; 
+  loginMode: LoginMode = 'patient'; // Default mode
 
   constructor() {
     this.loginForm = this.fb.group({
-      // Mapping 'Email Address' field in HTML to 'username' form control
       username: ['', [Validators.required, Validators.minLength(3)]],
       password: ['', [Validators.required, Validators.minLength(6)]],
     });
   }
 
-  // Helper function to easily access form controls in the template
   get f() {
     return this.loginForm.controls;
   }
@@ -51,8 +53,7 @@ export class Login {
       this.isLoading = true;
       this.errorMessage = '';
 
-      const loginRequest: AuthPatientLogin = {
-        // Retrieve values directly from the form group
+      const loginRequest = {
         username: this.loginForm.value.username,
         password: this.loginForm.value.password,
       };
@@ -70,7 +71,8 @@ export class Login {
         loginObservable = this.adminAuthService.login(loginRequest);
         redirectPath = '/admin/dashboard';
       }
-      loginObservable!.subscribe({
+      
+      loginObservable.subscribe({
         next: () => {
           this.isLoading = false;
           this.router.navigate([redirectPath]);

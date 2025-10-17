@@ -1,6 +1,5 @@
 <div id="admin-dashboard" class="dashboard">
   <div class="flex min-h-screen">
-    <!-- Sidebar -->
     <aside class="w-64 bg-white shadow-md p-6 flex flex-col">
       <div class="mb-8 border-b pb-4">
         <div class="text-2xl font-bold text-blue-600 flex items-center gap-2">⚕ MediCare</div>
@@ -8,14 +7,14 @@
       <ul class="flex flex-col gap-2">
         <li>
           <a
-            href="#"
+            [routerLink]="['/admin/dashboard']"
             class="flex items-center gap-2 px-4 py-2 font-medium text-gray-700 bg-blue-50 border-l-4 border-blue-600 rounded-l"
             >📊 Dashboard</a
           >
         </li>
         <li>
           <a
-            href="#"
+            [routerLink]="['/admin/doctors']"
             class="flex items-center gap-2 px-4 py-2 font-medium text-gray-700 hover:bg-gray-100 hover:border-l-4 hover:border-blue-600 rounded-l"
             >👨‍⚕️ Manage Doctors</a
           >
@@ -57,21 +56,18 @@
         </li>
         <li>
           <a
-            href="#"
+            [routerLink]="['/auth/login']"
             class="flex items-center gap-2 px-4 py-2 font-medium text-red-600 hover:bg-gray-100 hover:border-l-4 hover:border-red-600 rounded-l"
-            >🚪 Logout</a
+          >🚪 Logout</a
           >
         </li>
       </ul>
     </aside>
 
-    <!-- Main Content -->
     <main class="flex-1 p-8 bg-gray-100 overflow-y-auto">
-      <!-- Top Bar -->
       <div class="flex justify-between items-center mb-8 bg-white p-4 rounded-lg shadow">
         <h1 class="text-2xl font-bold text-gray-800">Admin Dashboard</h1>
         <div class="flex items-center gap-4">
-          <!-- Notifications -->
           <div class="relative">
             <button
               onclick="toggleDropdown('admin-notifications')"
@@ -99,37 +95,15 @@
                   </p>
                   <span class="text-gray-400 text-xs">15 minutes ago</span>
                 </div>
-                <div class="p-4 bg-blue-50">
-                  <h4 class="font-semibold text-gray-800">System Alert</h4>
-                  <p class="text-gray-600 text-sm">
-                    Server load increased by 20% - monitor performance
-                  </p>
-                  <span class="text-gray-400 text-xs">1 hour ago</span>
-                </div>
-                <div class="p-4 bg-blue-50">
-                  <h4 class="font-semibold text-gray-800">Payment Processed</h4>
-                  <p class="text-gray-600 text-sm">
-                    Monthly subscription payment of $5,240 received
-                  </p>
-                  <span class="text-gray-400 text-xs">2 hours ago</span>
-                </div>
-                <div class="p-4">
-                  <h4 class="font-semibold text-gray-800">Profile Update Request</h4>
-                  <p class="text-gray-600 text-sm">
-                    Dr. Jennifer Lee requested profile update approval
-                  </p>
-                  <span class="text-gray-400 text-xs">3 hours ago</span>
-                </div>
                 <div class="p-4">
                   <h4 class="font-semibold text-gray-800">Milestone Reached</h4>
                   <p class="text-gray-600 text-sm">System reached 100 appointments today!</p>
                   <span class="text-gray-400 text-xs">5 hours ago</span>
                 </div>
-              </div>
+                </div>
             </div>
           </div>
 
-          <!-- Profile -->
           <div class="relative">
             <div
               onclick="toggleDropdown('admin-profile')"
@@ -167,14 +141,13 @@
         </div>
       </div>
 
-      <!-- Stats Cards -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div
           class="bg-white p-6 rounded-xl shadow flex justify-between items-center hover:-translate-y-1 hover:shadow-lg transition"
         >
           <div>
             <h3 class="text-gray-500 text-sm font-medium mb-1">Total Doctors</h3>
-            <p class="text-2xl font-bold text-gray-800">156</p>
+            <p class="text-2xl font-bold text-gray-800">{{ totalDoctors }}</p>
           </div>
           <div class="text-3xl">👨‍⚕️</div>
         </div>
@@ -183,7 +156,7 @@
         >
           <div>
             <h3 class="text-gray-500 text-sm font-medium mb-1">Total Patients</h3>
-            <p class="text-2xl font-bold text-gray-800">3,247</p>
+            <p class="text-2xl font-bold text-gray-800">{{ totalPatients }}</p>
           </div>
           <div class="text-3xl">👥</div>
         </div>
@@ -207,28 +180,15 @@
         </div>
       </div>
 
-      <!-- System Overview -->
       <div class="bg-white p-6 rounded-xl shadow mb-6">
         <div class="flex justify-between items-center mb-4 border-b pb-3">
-          <h2 class="text-lg font-semibold text-gray-800">System Overview</h2>
-          <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
-            Generate Report
-          </button>
-        </div>
-        <div
-          class="h-72 flex items-center justify-center rounded-xl bg-gradient-to-br from-indigo-200 to-purple-200 text-gray-500 text-lg"
-        >
-          📊 Analytics Chart Area (Appointment Trends)
-        </div>
-      </div>
-
-      <!-- Recently Added Doctors -->
-      <div class="bg-white p-6 rounded-xl shadow mb-6">
-        <div class="flex justify-between items-center mb-4 border-b pb-3">
-          <h2 class="text-lg font-semibold text-gray-800">Recently Added Doctors</h2>
-          <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+          <h2 class="text-lg font-semibold text-gray-800">Recently Added Doctors (Top 10)</h2>
+          <a
+            routerLink="/auth/doctor-register"
+            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+          >
             Add New Doctor
-          </button>
+          </a>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
@@ -236,68 +196,50 @@
               <tr>
                 <th class="px-4 py-2 text-sm font-semibold text-gray-700">Name</th>
                 <th class="px-4 py-2 text-sm font-semibold text-gray-700">Specialization</th>
-                <th class="px-4 py-2 text-sm font-semibold text-gray-700">Patients</th>
-                <th class="px-4 py-2 text-sm font-semibold text-gray-700">Rating</th>
-                <th class="px-4 py-2 text-sm font-semibold text-gray-700">Status</th>
-                <th class="px-4 py-2 text-sm font-semibold text-gray-700">Actions</th>
+                <th class="px-4 py-2 text-sm font-semibold text-gray-700">Qualification</th>
+                <th class="px-4 py-2 text-sm font-semibold text-gray-700">Experience</th>
+                <th class="px-4 py-2 text-sm font-semibold text-gray-700">Contact</th>
+                <!-- <th class="px-4 py-2 text-sm font-semibold text-gray-700">Status</th> -->
+                <!-- <th class="px-4 py-2 text-sm font-semibold text-gray-700">Actions</th> -->
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
-              <tr class="hover:bg-gray-50">
-                <td class="px-4 py-2 font-semibold">Dr. James Wilson</td>
-                <td class="px-4 py-2">Orthopedics</td>
-                <td class="px-4 py-2">45</td>
-                <td class="px-4 py-2">4.7 ⭐</td>
-                <td class="px-4 py-2">
+              <tr *ngFor="let doctor of recentDoctors" class="hover:bg-gray-50">
+                <td class="px-4 py-2 font-semibold">{{ doctor.doctorName }}</td>
+                <td class="px-4 py-2">{{ doctor.specialization }}</td>
+                <td class="px-4 py-2">{{ doctor.qualification }}</td>
+                <td class="px-4 py-2">{{ doctor.yearOfExperience }} yrs</td>
+                <td class="px-4 py-2">{{ doctor.contactNumber }}</td>
+                
+                <!-- <td class="px-4 py-2">
                   <span
-                    class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-semibold"
-                    >Active</span
-                  >
-                </td>
-                <td class="px-4 py-2 flex gap-2">
-                  <button class="bg-gray-200 px-2 py-1 rounded hover:bg-gray-300">View</button>
-                  <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">
-                    Suspend
-                  </button>
-                </td>
-              </tr>
-              <tr class="hover:bg-gray-50">
-                <td class="px-4 py-2 font-semibold">Dr. Lisa Anderson</td>
-                <td class="px-4 py-2">Pediatrics</td>
-                <td class="px-4 py-2">67</td>
-                <td class="px-4 py-2">4.9 ⭐</td>
-                <td class="px-4 py-2">
-                  <span
-                    class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-semibold"
-                    >Active</span
-                  >
-                </td>
-                <td class="px-4 py-2 flex gap-2">
-                  <button class="bg-gray-200 px-2 py-1 rounded hover:bg-gray-300">View</button>
-                  <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">
-                    Suspend
-                  </button>
-                </td>
-              </tr>
-              <tr class="hover:bg-gray-50">
-                <td class="px-4 py-2 font-semibold">Dr. Robert Chen</td>
-                <td class="px-4 py-2">Neurology</td>
-                <td class="px-4 py-2">32</td>
-                <td class="px-4 py-2">4.6 ⭐</td>
-                <td class="px-4 py-2">
-                  <span
+                    *ngIf="doctor.doctorId % 3 === 0"
                     class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-semibold"
                     >Pending Verification</span
                   >
-                </td>
+                  <span
+                    *ngIf="doctor.doctorId % 3 !== 0"
+                    class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-semibold"
+                    >Active</span
+                  >
+                </td> -->
+                
                 <td class="px-4 py-2 flex gap-2">
-                  <button class="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600">
-                    Approve
-                  </button>
-                  <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">
-                    Reject
-                  </button>
+                  <!-- <button (click)="viewDoctor(doctor.doctorId)" class="bg-gray-200 px-2 py-1 rounded hover:bg-gray-300">View</button> -->
+
+                  <!-- <ng-container *ngIf="doctor.doctorId % 3 === 0; else activeDoctorActions">
+                    <button (click)="approveDoctor(doctor.doctorId)" class="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600">Approve</button>
+                    <button (click)="rejectDoctor(doctor.doctorId)" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">Reject</button>
+                  </ng-container> -->
+
+                  <ng-template #activeDoctorActions>
+                    <button (click)="suspendDoctor(doctor.doctorId)" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">Suspend</button>
+                  </ng-template>
                 </td>
+              </tr>
+
+              <tr *ngIf="recentDoctors.length === 0">
+                <td colspan="7" class="px-4 py-4 text-center text-gray-500">No recent doctors found.</td>
               </tr>
             </tbody>
           </table>
