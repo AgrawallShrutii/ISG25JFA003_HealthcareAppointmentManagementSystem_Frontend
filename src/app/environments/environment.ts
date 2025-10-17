@@ -3,8 +3,10 @@ export const environment = {
   apiUrl: 'http://localhost:8080/api',
 
   auth: {
-    register: '/auth/register',
-    login: '/auth/login',
+    register: '/auth/register/patient', // Renamed for clarity
+    login: '/auth/login', // Unified login endpoint for all roles
+    doctorRegister: '/admin/create-user', // New Doctor Register endpoint
+    // Admin login usually uses the unified endpoint with a role parameter
   },
 
   patient: {
@@ -32,4 +34,8 @@ export const environment = {
     confirmAppointment: '/doctors/me/appointments/{appointmentId}/confirm',
     rejectAppointment: '/doctors/me/appointments/{appointmentId}/reject',
   },
+  admin: { // New section for admin specific APIs
+    getAllPatients: '/patients/all', // Assuming this endpoint exists or is needed
+    getAllDoctors: '/doctors/all',   // Assuming this endpoint exists, or we use the patient one, for admin view, let's assume a dedicated one for comprehensive doctor data.
+  }
 };

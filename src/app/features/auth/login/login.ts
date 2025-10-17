@@ -2,38 +2,45 @@ import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { PatientAuthService } from '../../../core/services/patient-auth.service';
-import { AuthPatientLogin } from '../../../models/auth-patient-interface';
 import { Observable } from 'rxjs';
+import { PatientAuthService } from '../../../core/services/patient-auth.service';
+import { DoctorAuthService } from '../../../core/services/doctor-auth.service'; // NEW IMPORT
+import { AdminAuthService } from '../../../core/services/admin-auth.service'; // NEW IMPORT
+import { AuthPatientLogin } from '../../../models/auth-patient-interface';
+import { AuthDoctorLogin } from '../../../models/auth-doctor-interface'; // NEW IMPORT
+import { AuthAdminLogin } from '../../../models/auth-admin-interface'; // NEW IMPORT
 
-type LoginMode = 'patient' | 'doctor' | 'admin'; // Add other modes as needed
+type LoginMode = 'patient' | 'doctor' | 'admin';
 
 @Component({
   selector: 'app-login',
-  standalone: true, // Assuming standalone for modern Angular
+  standalone: true, 
   templateUrl: './login.html',
   styleUrl: './login.css',
-  imports: [ReactiveFormsModule, CommonModule, RouterLink], // Modules required by the template
+  imports: [ReactiveFormsModule, CommonModule, RouterLink], 
 })
 export class Login {
   private fb = inject(FormBuilder);
-  private authService = inject(PatientAuthService);
+  // Inject all three services
+  private patientAuthService = inject(PatientAuthService);
+  private doctorAuthService = inject(DoctorAuthService);
+  private adminAuthService = inject(AdminAuthService);
+  
   private router = inject(Router);
 
   loginForm!: FormGroup;
   errorMessage: string = '';
   isLoading: boolean = false;
-  showPassword: boolean = false; // State for password visibility
+  showPassword: boolean = false; 
+  loginMode: LoginMode = 'patient'; // Default mode
 
   constructor() {
     this.loginForm = this.fb.group({
-      // Mapping 'Email Address' field in HTML to 'username' form control
       username: ['', [Validators.required, Validators.minLength(3)]],
       password: ['', [Validators.required, Validators.minLength(6)]],
     });
   }
 
-  // Helper function to easily access form controls in the template
   get f() {
     return this.loginForm.controls;
   }
@@ -47,8 +54,7 @@ export class Login {
       this.isLoading = true;
       this.errorMessage = '';
 
-      const loginRequest: AuthPatientLogin = {
-        // Retrieve values directly from the form group
+      const loginRequest = {
         username: this.loginForm.value.username,
         password: this.loginForm.value.password,
       };
@@ -56,19 +62,27 @@ export class Login {
       let loginObservable: Observable<any>;
       let redirectPath: string;
 
-      if (this.loginMode === 'patient') {
-        loginObservable = this.authService.login(loginRequest);
-        redirectPath = '/patient/dashboard';
-      } else if (this.loginMode === 'doctor') {
-        // Implement doctor login logic here
-        // loginObservable = this.doctorAuthService.login(loginRequest);
-        // redirectPath = '/doctor/dashboard';
-      } else if (this.loginMode === 'admin') {
-        // Implement admin login logic here
-        // loginObservable = this.adminAuthService.login(loginRequest);
-        // redirectPath = '/admin/dashboard';
+      // Determine which service to use based on the selected login mode
+      switch (this.loginMode) {
+        case 'patient':
+          loginObservable = this.patientAuthService.login(loginRequest as AuthPatientLogin);
+          redirectPath = '/patient/dashboard';
+          break;
+        case 'doctor':
+          loginObservable = this.doctorAuthService.login(loginRequest as AuthDoctorLogin);
+          redirectPath = '/doctor/dashboard';
+          break;
+        case 'admin':
+          loginObservable = this.adminAuthService.login(loginRequest as AuthAdminLogin);
+          redirectPath = '/admin/dashboard';
+          break;
+        default:
+          this.isLoading = false;
+          this.errorMessage = 'Invalid login mode selected.';
+          return;
       }
-      loginObservable!.subscribe({
+      
+      loginObservable.subscribe({
         next: () => {
           this.isLoading = false;
           // Navigate to the role-specific dashboard
@@ -76,7 +90,7 @@ export class Login {
         },
         error: (error) => {
           this.isLoading = false;
-          // Extract error message or use a generic fallback
+          // Display a user-friendly error message
           this.errorMessage =
             error?.error?.message ||
             `Login failed for ${this.loginMode}. Invalid credentials or network error.`;
@@ -88,14 +102,9 @@ export class Login {
     }
   }
 
-  isPatientMode: boolean = true;
-  loginMode: LoginMode = 'patient'; // Default mode
-
   toggleLoginMode(mode: LoginMode): void {
     this.loginMode = mode;
-    // Clear state on mode switch for a fresh attempt
     this.errorMessage = '';
-    // Reset form to clear previous values and validation state
-    this.loginForm.reset();
+    this.loginForm.reset(); // Reset form state on mode switch
   }
 }

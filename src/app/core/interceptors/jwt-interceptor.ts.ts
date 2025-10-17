@@ -1,10 +1,9 @@
 import { HttpInterceptorFn } from '@angular/common/http';
-import { PatientAuthService } from '../services/patient-auth.service';
 import { inject } from '@angular/core';
 
 export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
-  const authService = inject(PatientAuthService);
-  const token = authService.getToken();
+  // Directly reading from localStorage is robust for multiple roles
+  const token = localStorage.getItem('authToken'); 
 
   if (token) {
     req = req.clone({
